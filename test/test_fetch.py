@@ -4,9 +4,9 @@ import pytest
 from src.lp_graun_sifter.fetch import fetch
 
 
-def test_fetch_returns_list_of_dicts_with_minimum_required_fields():
-    response_mock = Mock()
-    response_mock.json.return_value = {
+@pytest.fixture
+def sample_response():
+    return {
         "response": {
             "currentPage": 1,
             "orderBy": "relevance",
@@ -58,12 +58,29 @@ def test_fetch_returns_list_of_dicts_with_minimum_required_fields():
             "total": 30,
             "userTier": "developer"}
     }
-    patcher = patch("src.lp_graun_sifter.fetch.requests.get", return_value = response_mock)
 
-    patcher.start()
+
+@pytest.fixture
+def requests_get_patcher(sample_response):
+    response_mock = Mock()
+    response_mock.json.return_value = sample_response
+    return patch("src.lp_graun_sifter.fetch.requests.get", return_value = response_mock)
+
+
+def test_required_fields_appear_expected_num_of_times_in_fetched_data(requests_get_patcher):
+    requests_get_patcher.start()
     fetched_json = fetch("test_search")
     fetched_str = str(fetched_json)
     assert fetched_str.count("webPublicationDate") == 3
     assert fetched_str.count("webTitle") == 3
     assert fetched_str.count("webUrl") == 3
-    patcher.stop()
+    requests_get_patcher.stop()
+
+
+# def test_fetch_returns_list_of_dicts_containing_only_expected_fields(sample_response):
+#     response_mock = Mock()
+#     response_mock.json.return_value = sample_response
+#     patcher = patch("src.lp_graun_sifter.requests.get", return_value = response_mock)
+    
+# def test_raises_error_on_timeout(sample_response):
+
