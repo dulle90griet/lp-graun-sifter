@@ -22,6 +22,7 @@ def fetch(search: str, date_from: str = None) -> dict:
     query += f"q={search}&api-key={api_key}"
 
     response = requests.get(query, timeout=5)
+    print(type(response))
 
     return response.json()
 
