@@ -18,14 +18,20 @@ def fetch(search: str, date_from: str = None) -> list[dict]:
     query = "https://content.guardianapis.com/search?"
     if date_from:
         query += f"from-date={date_from}&"
-    query += f"q={search}&api-key={os.environ['GRAUN_API_KEY']}"
+    query += f"q={search}&show-fields=body&api-key={os.environ['GRAUN_API_KEY']}"
 
     response = requests.get(query, timeout=5)
 
     results = response.json()['response']['results']
     keys_to_select = ["webPublicationDate", "webTitle", "webUrl"]
-    selected_results = [{key: value for key, value in result.items() \
-                         if key in keys_to_select} for result in results]
+    selected_results = [{
+        "webPublicationDate": result['webPublicationDate'],
+        "webTitle": result['webTitle'],
+        "webUrl": result['webUrl'],
+        "contentPreview": result['fields']['body'][:min(
+            len(result['fields']['body']), 1000
+        )]
+    } for result in results]
     
     return selected_results
 
