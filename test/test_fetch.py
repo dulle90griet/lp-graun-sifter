@@ -9,7 +9,7 @@ from src.lp_graun_sifter.fetch import fetch
 
 @pytest.fixture
 def sample_response():
-    with open("test/data/sample_response.json", "r") as f:
+    with open("test/data/sample_api_response.json", "r") as f:
         sample_json = json.loads(f.read())
     return sample_json
 
