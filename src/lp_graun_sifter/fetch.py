@@ -25,7 +25,6 @@ def fetch(search: str, date_from: str = None) -> list[dict]:
     response = requests.get(query, timeout=5)
 
     results = response.json()['response']['results']
-    keys_to_select = ["webPublicationDate", "webTitle", "webUrl"]
     selected_results = [{
         "webPublicationDate": result['webPublicationDate'],
         "webTitle": result['webTitle'],
@@ -39,4 +38,7 @@ def fetch(search: str, date_from: str = None) -> list[dict]:
 
 
 if __name__ == "__main__":
-    pprint(fetch(sys.argv[1], sys.argv[2]))
+    if len(sys.argv > 2):
+        pprint(fetch(sys.argv[1], sys.argv[2]))
+    else:
+        pprint(fetch(sys.argv[1]))
