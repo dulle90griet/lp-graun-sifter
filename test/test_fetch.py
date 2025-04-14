@@ -1,5 +1,7 @@
 from unittest.mock import Mock, patch
 import pytest
+import requests
+import os
 
 from src.lp_graun_sifter.fetch import fetch
 
@@ -88,6 +90,26 @@ def test_fetch_returns_list_of_dicts_containing_only_expected_fields(requests_ge
         assert "webTitle" in keys
         assert "webUrl" in keys
     
+
+def test_query_string_well_formed():
+    saved_key = os.environ['GRAUN_API_KEY']
+    os.environ['GRAUN_API_KEY'] = "test"
+
+    requests_get_spy = Mock(wraps=requests.get)
+    with patch(
+        "src.lp_graun_sifter.fetch.requests.get",
+        side_effect=requests_get_spy
+    ):
+        fetch("\"debussy on ice\"")
+        formed_query = requests_get_spy.call_args.args[0]
+        assert formed_query == "https://content.guardianapis.com/search?q=\"debussy on ice\"&api-key=test"
+
+        fetch("\"pinwheel cantata\"", date_from="2025-04-01")
+        formed_query = requests_get_spy.call_args.args[0]
+        assert formed_query == "https://content.guardianapis.com/search?from-date=2025-04-01&q=\"pinwheel cantata\"&api-key=test"
+
+    os.environ['GRAUN_API_KEY'] = saved_key
+
 
 # def test_raises_error_on_timeout(sample_response):
 
