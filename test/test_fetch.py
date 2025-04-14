@@ -64,23 +64,30 @@ def sample_response():
 def requests_get_patcher(sample_response):
     response_mock = Mock()
     response_mock.json.return_value = sample_response
-    return patch("src.lp_graun_sifter.fetch.requests.get", return_value = response_mock)
+    patcher = patch("src.lp_graun_sifter.fetch.requests.get", return_value = response_mock)
+    patcher.start()
+    yield patcher
+    patcher.stop()
 
 
 def test_required_fields_appear_expected_num_of_times_in_fetched_data(requests_get_patcher):
-    requests_get_patcher.start()
-    fetched_json = fetch("test_search")
-    fetched_str = str(fetched_json)
-    assert fetched_str.count("webPublicationDate") == 3
-    assert fetched_str.count("webTitle") == 3
-    assert fetched_str.count("webUrl") == 3
-    requests_get_patcher.stop()
+    str_of_return = str(fetch("test_search"))
+    assert str_of_return.count("webPublicationDate") == 3
+    assert str_of_return.count("webTitle") == 3
+    assert str_of_return.count("webUrl") == 3
 
 
-# def test_fetch_returns_list_of_dicts_containing_only_expected_fields(sample_response):
-#     response_mock = Mock()
-#     response_mock.json.return_value = sample_response
-#     patcher = patch("src.lp_graun_sifter.requests.get", return_value = response_mock)
+def test_fetch_returns_list_of_dicts_containing_only_expected_fields(requests_get_patcher):
+    fetched_json = str(fetch("a_search_string"))
+    assert isinstance(fetched_json, list)
+    for result in fetched_json:
+        assert isinstance(result, dict)
+        keys = result.keys()
+        assert len(keys) == 3
+        assert "webPublicationDate" in keys
+        assert "webTitle" in keys
+        assert "webUrl" in keys
     
+
 # def test_raises_error_on_timeout(sample_response):
 
