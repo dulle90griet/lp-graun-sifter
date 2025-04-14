@@ -1,0 +1,43 @@
+from datetime import datetime, UTC
+import sys
+
+import boto3
+import json
+
+
+def post(client, queue_url: str, messages: list[dict]) -> None:
+    '''
+    client:
+        The botocore.client.SQS instance to use to connect to AWS SQS.
+    queue_url:
+        The HTTPS endpoint of the SQS queue.
+    messages:
+        The list of message dicts to be posted to the queue.
+    '''
+    
+    cur_time = datetime.now(UTC)
+    id_prefix = cur_time.strftime("%Y%m%dT%H%M%S_")
+
+    entries = [{
+        "Id": f"{id_prefix}{i:02}",
+        "MessageBody": json.dumps(message)
+    } for i, message in enumerate(messages)]
+
+    response = client.send_message_batch(
+        QueueUrl=queue_url,
+        Entries=entries
+    )
+
+    print(response)
+
+
+if __name__ == "__main__":
+    region_name = sys.argv[1]
+    queue_url = sys.argv[2]
+
+    sqs = boto3.client('sqs', region_name=region_name)
+
+    with open("test/data/sample_fetch_output.json", "r", encoding="utf8") as f:
+        messages = json.loads(f.read())
+
+    post(sqs, queue_url, messages)
