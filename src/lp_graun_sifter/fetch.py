@@ -15,10 +15,12 @@ def fetch(search: str, date_from: str = None) -> list[dict]:
     date_from (optional):
         Allows the user to fetch only results later than the given date. Must be in the format YYYY-MM-DD.
     '''
+
+    api_key = os.environ['GRAUN_API_KEY']
     query = "https://content.guardianapis.com/search?"
     if date_from:
         query += f"from-date={date_from}&"
-    query += f"q={search}&show-fields=body&api-key={os.environ['GRAUN_API_KEY']}"
+    query += f"q={search}&order-by=newest&show-fields=body&api-key={api_key}"
 
     response = requests.get(query, timeout=5)
 

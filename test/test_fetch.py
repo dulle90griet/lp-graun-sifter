@@ -98,11 +98,11 @@ def test_query_string_well_formed(test_api_key):
     ):
         fetch("\"debussy on ice\"")
         formed_query = requests_get_spy.call_args.args[0]
-        assert formed_query == "https://content.guardianapis.com/search?q=\"debussy on ice\"&show-fields=body&api-key=test"
+        assert formed_query == "https://content.guardianapis.com/search?q=\"debussy on ice\"&order-by=newest&show-fields=body&api-key=test"
 
         fetch("\"pinwheel cantata\"", date_from="2025-04-01")
         formed_query = requests_get_spy.call_args.args[0]
-        assert formed_query == "https://content.guardianapis.com/search?from-date=2025-04-01&q=\"pinwheel cantata\"&show-fields=body&api-key=test"
+        assert formed_query == "https://content.guardianapis.com/search?from-date=2025-04-01&q=\"pinwheel cantata\"&order-by=newest&show-fields=body&api-key=test"
 
 
 def test_required_fields_appear_expected_num_of_times_in_fetched_data(requests_get_patcher):
@@ -132,5 +132,11 @@ def test_content_previews_of_expected_length(requests_get_patcher):
         assert 0 < len(result['contentPreview']) <= 1000
 
 
-# def test_raises_error_on_timeout(sample_response):
+def test_results_ordered_by_date_desc():
+    results = fetch("keir starmer", date_from="2025-04-10")
 
+    for i in range(len(results)-1):
+        assert results[i]['webPublicationDate'] > results[i+1]['webPublicationDate']
+
+
+# def test_raises_error_on_timeout(sample_response):
