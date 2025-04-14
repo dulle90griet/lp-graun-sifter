@@ -22,9 +22,18 @@ def fetch(search: str, date_from: str = None) -> dict:
     query += f"q={search}&api-key={api_key}"
 
     response = requests.get(query, timeout=5)
-    print(type(response))
 
-    return response.json()
+    results = response.json()['response']['results']
+    keys_to_select = ["webPublicationDate", "webTitle", "webUrl"]
+    selected_results = []
+    for result in results:
+        result_dict = {}
+        for key, value in result.items():
+            if key in keys_to_select:
+                result_dict[key] = value
+        selected_results.append(result_dict)
+        
+    return selected_results
 
 
 if __name__ == "__main__":

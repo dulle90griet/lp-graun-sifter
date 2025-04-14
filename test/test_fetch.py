@@ -78,7 +78,7 @@ def test_required_fields_appear_expected_num_of_times_in_fetched_data(requests_g
 
 
 def test_fetch_returns_list_of_dicts_containing_only_expected_fields(requests_get_patcher):
-    fetched_json = str(fetch("a_search_string"))
+    fetched_json = fetch("a_search_string")
     assert isinstance(fetched_json, list)
     for result in fetched_json:
         assert isinstance(result, dict)
