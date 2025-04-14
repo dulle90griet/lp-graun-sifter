@@ -25,13 +25,8 @@ def fetch(search: str, date_from: str = None) -> dict:
 
     results = response.json()['response']['results']
     keys_to_select = ["webPublicationDate", "webTitle", "webUrl"]
-    selected_results = []
-    for result in results:
-        result_dict = {}
-        for key, value in result.items():
-            if key in keys_to_select:
-                result_dict[key] = value
-        selected_results.append(result_dict)
+    selected_results = [{key: value for key, value in result.items() \
+                         if key in keys_to_select} for result in results]
         
     return selected_results
 
