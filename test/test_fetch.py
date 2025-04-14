@@ -72,6 +72,14 @@ def requests_get_patcher(sample_response):
     patcher.stop()
 
 
+@pytest.fixture
+def test_api_key():
+    saved_key = os.environ['GRAUN_API_KEY']
+    os.environ['GRAUN_API_KEY'] = "test"
+    yield
+    os.environ['GRAUN_API_KEY'] = saved_key
+
+
 def test_required_fields_appear_expected_num_of_times_in_fetched_data(requests_get_patcher):
     str_of_return = str(fetch("test_search"))
     assert str_of_return.count("webPublicationDate") == 3
@@ -91,10 +99,7 @@ def test_fetch_returns_list_of_dicts_containing_only_expected_fields(requests_ge
         assert "webUrl" in keys
     
 
-def test_query_string_well_formed():
-    saved_key = os.environ['GRAUN_API_KEY']
-    os.environ['GRAUN_API_KEY'] = "test"
-
+def test_query_string_well_formed(test_api_key):
     requests_get_spy = Mock(wraps=requests.get)
     with patch(
         "src.lp_graun_sifter.fetch.requests.get",
@@ -107,8 +112,6 @@ def test_query_string_well_formed():
         fetch("\"pinwheel cantata\"", date_from="2025-04-01")
         formed_query = requests_get_spy.call_args.args[0]
         assert formed_query == "https://content.guardianapis.com/search?from-date=2025-04-01&q=\"pinwheel cantata\"&api-key=test"
-
-    os.environ['GRAUN_API_KEY'] = saved_key
 
 
 # def test_raises_error_on_timeout(sample_response):
