@@ -64,8 +64,8 @@ def test_entry_ids_zero_indexed_and_in_sequence(sqs, messages):
     post(sqs, queue_url, messages)
 
     entry_ids = [entry['Id'] for entry in send_message_spy.call_args.kwargs['Entries']]
-    for i in range(len(entry_ids)):
-        entry_num = int(entry_ids[i].split("_")[1])
+    for i, entry_id in enumerate(entry_ids):
+        entry_num = int(entry_id.split("_")[1])
         assert i == entry_num
 
 
