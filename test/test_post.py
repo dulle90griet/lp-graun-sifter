@@ -83,8 +83,32 @@ def test_messages_sent_in_original_sequence(sqs, messages):
         assert sent_date == message_date
 
 
+def test_entry_message_bodies_formed_without_loss(sqs, messages):
+    send_message_spy = Mock(wraps=sqs.send_message_batch)
+    sqs.send_message_batch = send_message_spy
+    queue_url = sqs.create_queue(QueueName="test-sqs-queue")['QueueUrl']
 
-# test_entry_message_bodies_formed_without_loss
+    post(sqs, queue_url, messages)
+
+    # form dicts allowing fetching of message content by date
+    messages_by_date = {message['webPublicationDate']:
+                        {"webTitle": message['webTitle'],
+                         "webUrl": message['webUrl'],
+                         "contentPreview": message['contentPreview']}
+                         for message in messages}
+    sent_messages = [json.loads(entry['MessageBody']) for entry in send_message_spy.call_args.kwargs['Entries']]
+    sent_messages_by_date = {sent_message['webPublicationDate']:
+                        {"webTitle": sent_message['webTitle'],
+                         "webUrl": sent_message['webUrl'],
+                         "contentPreview": sent_message['contentPreview']}
+                         for sent_message in sent_messages}
+
+    for date in messages_by_date:
+        message = messages_by_date[date]
+        sent_message = sent_messages_by_date[date]
+        assert message['webTitle'] == sent_message['webTitle']
+        assert message['webUrl'] == sent_message['webUrl']
+        assert message['contentPreview'] == sent_message['contentPreview']
 
 # test_max_10_messages_posted
 
