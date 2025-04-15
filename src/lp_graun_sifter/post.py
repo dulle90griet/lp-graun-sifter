@@ -20,7 +20,7 @@ def post(client, queue_url: str, messages: list[dict]) -> None:
 
     entries = [{
         "Id": f"{id_prefix}{i:02}",
-        "MessageBody": json.dumps(message)
+        "MessageBody": json.dumps(message, ensure_ascii=False)
     } for i, message in enumerate(messages)]
 
     response = client.send_message_batch(
@@ -35,9 +35,12 @@ if __name__ == "__main__":
     region_name = sys.argv[1]
     queue_url = sys.argv[2]
 
-    sqs = boto3.client('sqs', region_name=region_name)
+    if len(sys.argv) > 3:
+        messages = sys.argv[3]
+    else:
+        with open("test/data/sample_fetch_output.json", "r", encoding="utf8") as f:
+            messages = json.loads(f.read())
 
-    with open("test/data/sample_fetch_output.json", "r", encoding="utf8") as f:
-        messages = json.loads(f.read())
+    sqs = boto3.client('sqs', region_name=region_name)
 
     post(sqs, queue_url, messages)
