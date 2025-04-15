@@ -32,31 +32,42 @@ def messages():
         return json.loads(f.read())
 
 
-def test_entry_ids_follow_datetime_two_digit_entry_num_pattern(sqs, messages):
+def test_entry_ids_follow_datetime_entry_num_pattern(sqs, messages):
     send_message_spy = Mock(wraps=sqs.send_message_batch)
     sqs.send_message_batch = send_message_spy
-
     queue_url = sqs.create_queue(QueueName="test-sqs-queue")['QueueUrl']
-
     test_datetime = datetime.now(UTC)
+
     post(sqs, queue_url, messages)
 
-    ids = [entry['Id'] for entry in send_message_spy.call_args.kwargs['Entries']]
-    for id in ids:
-        # Check id of expected length
-        assert len(id) == 17
+    entry_ids = [entry['Id'] for entry in send_message_spy.call_args.kwargs['Entries']]
+    for entry_id in entry_ids:
+        datepart, numpart = entry_id.split("_")
 
         # Check datetime in id is reasonably accurate
-        entry_datetime = datetime.strptime(id[:15], "%Y%m%dT%H%M%S") \
+        entry_datetime = datetime.strptime(datepart, "%Y%m%dT%H%M%S") \
             .replace(tzinfo=UTC)
         delta = entry_datetime - test_datetime
         assert delta.total_seconds() < 10
 
-        # Check final character is an integer
-        assert id[-1:] in "0123456789"
+        # Check numpart contains an integer
+        for char in numpart:
+            assert char in "0123456789"
 
 
-# test_entry_ids_in_sequence
+def test_entry_ids_zero_indexed_and_in_sequence(sqs, messages):
+    send_message_spy = Mock(wraps=sqs.send_message_batch)
+    sqs.send_message_batch = send_message_spy
+    queue_url = sqs.create_queue(QueueName="test-sqs-queue")['QueueUrl']
+    test_datetime = datetime.now(UTC)
+
+    post(sqs, queue_url, messages)
+
+    entry_ids = [entry['Id'] for entry in send_message_spy.call_args.kwargs['Entries']]
+    for i in range(len(entry_ids)):
+        entry_num = int(entry_ids[i].split("_")[1])
+        assert i == entry_num
+
 
 # test_messages_in_original_sequence
 
