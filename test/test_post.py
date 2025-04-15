@@ -2,6 +2,7 @@ from unittest.mock import Mock, patch
 from datetime import datetime, UTC
 import os
 import json
+from copy import deepcopy
 import pytest
 from moto import mock_aws
 import boto3
@@ -30,6 +31,15 @@ def sqs(aws_credentials):
 def messages():
     with open("test/data/sample_fetch_output.json", "r", encoding="utf8") as f:
         return json.loads(f.read())
+    
+
+def test_input_messages_object_not_transformed(sqs, messages):
+    queue_url = sqs.create_queue(QueueName="test-sqs-queue")['QueueUrl']
+    orig_messages = deepcopy(messages)
+
+    post(sqs, queue_url, messages)
+
+    assert messages == orig_messages
 
 
 def test_entry_ids_follow_datetime_entry_num_pattern(sqs, messages):
@@ -83,7 +93,7 @@ def test_messages_sent_in_original_sequence(sqs, messages):
         assert sent_date == message_date
 
 
-def test_entry_message_bodies_formed_without_loss(sqs, messages):
+def test_message_bodies_formed_without_loss(sqs, messages):
     send_message_spy = Mock(wraps=sqs.send_message_batch)
     sqs.send_message_batch = send_message_spy
     queue_url = sqs.create_queue(QueueName="test-sqs-queue")['QueueUrl']

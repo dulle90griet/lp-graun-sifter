@@ -1,5 +1,6 @@
 from datetime import datetime, UTC
 import sys
+from copy import deepcopy
 import json
 
 import boto3
