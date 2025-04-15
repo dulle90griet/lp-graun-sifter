@@ -59,7 +59,6 @@ def test_entry_ids_zero_indexed_and_in_sequence(sqs, messages):
     send_message_spy = Mock(wraps=sqs.send_message_batch)
     sqs.send_message_batch = send_message_spy
     queue_url = sqs.create_queue(QueueName="test-sqs-queue")['QueueUrl']
-    test_datetime = datetime.now(UTC)
 
     post(sqs, queue_url, messages)
 
@@ -69,7 +68,21 @@ def test_entry_ids_zero_indexed_and_in_sequence(sqs, messages):
         assert i == entry_num
 
 
-# test_messages_in_original_sequence
+def test_messages_sent_in_original_sequence(sqs, messages):
+    send_message_spy = Mock(wraps=sqs.send_message_batch)
+    sqs.send_message_batch = send_message_spy
+    queue_url = sqs.create_queue(QueueName="test-sqs-queue")['QueueUrl']
+
+    post(sqs, queue_url, messages)
+
+    sent_messages = [entry['MessageBody'] for entry in send_message_spy.call_args.kwargs['Entries']]
+
+    for i, message in enumerate(messages):
+        message_date = message['webPublicationDate']
+        sent_date = json.loads(sent_messages[i])['webPublicationDate']
+        assert sent_date == message_date
+
+
 
 # test_entry_message_bodies_formed_without_loss
 
