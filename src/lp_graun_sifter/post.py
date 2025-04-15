@@ -1,8 +1,8 @@
 from datetime import datetime, UTC
 import sys
+import json
 
 import boto3
-import json
 
 
 def post(client, queue_url: str, messages: list[dict]) -> None:
@@ -19,7 +19,7 @@ def post(client, queue_url: str, messages: list[dict]) -> None:
     id_prefix = cur_time.strftime("%Y%m%dT%H%M%S_")
 
     entries = [{
-        "Id": f"{id_prefix}{i:02}",
+        "Id": f"{id_prefix}{i}",
         "MessageBody": json.dumps(message, ensure_ascii=False)
     } for i, message in enumerate(messages)]
 
@@ -28,7 +28,7 @@ def post(client, queue_url: str, messages: list[dict]) -> None:
         Entries=entries
     )
 
-    print(response)
+    return response
 
 
 if __name__ == "__main__":
