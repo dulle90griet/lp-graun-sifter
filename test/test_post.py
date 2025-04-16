@@ -134,21 +134,32 @@ def test_max_10_messages_posted(sqs, messages):
     assert len(sent_messages) <= 10
 
 
-def test_posted_messages_present_in_SQS_queue(sqs, messages):
+def test_SQS_queue_stores_messages_without_loss(sqs, messages):
     send_message_spy = Mock(wraps=sqs.send_message_batch)
     sqs.send_message_batch = send_message_spy
     queue_url = sqs.create_queue(QueueName="test-sqs-queue")['QueueUrl']
 
-    post(sqs, queue_url, messages)
+    response = post(sqs, queue_url, messages)
 
+    # The post response tells us the stored MessageId for each entry Id posted,
+    # so use it to create a map allowing comparison of posted to stored messages
+    id_map = {message['Id']: message['MessageId']
+              for message in response['Successful']}
+    
+    # Collect the posted messages intercepted by the spy
     sent_messages = send_message_spy.call_args.kwargs['Entries']
-    retrieved_messages = sqs.receive_message(QueueUrl=queue_url)['Messages']
+    # Retrieve the messages stored in SQS
+    retrieved_messages = sqs.receive_message(
+        QueueUrl=queue_url,
+        MaxNumberOfMessages=10
+    )['Messages']
 
     # Construct dicts indexed by message ID
-    sent_messages_by_id = {entry['Id']: entry['MessageBody'] for entry in sent_messages}
-    retrieved_messages_by_id = {entry['MessageId']: entry['Body'] for entry in retrieved_messages}
+    sent_messages_by_id = {id_map[entry['Id']]: entry['MessageBody']
+                           for entry in sent_messages}
+    retrieved_messages_by_id = {entry['MessageId']: entry['Body']
+                                for entry in retrieved_messages}
 
     for message_id in sent_messages_by_id:
         assert sent_messages_by_id[message_id] == retrieved_messages_by_id[message_id]
 
-# test_SQS_queue_stores_messages_without_loss
