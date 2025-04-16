@@ -120,7 +120,19 @@ def test_message_bodies_formed_without_loss(sqs, messages):
         assert message['webUrl'] == sent_message['webUrl']
         assert message['contentPreview'] == sent_message['contentPreview']
 
-# test_max_10_messages_posted
+
+def test_max_10_messages_posted(sqs, messages):
+    ''' A redundant test as long as SQS is the broker (send_message_batch() takes max 10 entries, and raises an error if it receives more), but it will be necessary if the module is expanded to support Kafka. '''
+
+    send_message_spy = Mock(wraps=sqs.send_message_batch)
+    sqs.send_message_batch = send_message_spy
+    queue_url = sqs.create_queue(QueueName="test-sqs-queue")['QueueUrl']
+
+    post(sqs, queue_url, messages * 4)
+
+    sent_messages = send_message_spy.call_args.kwargs['Entries']
+    assert len(sent_messages) <= 10
+
 
 # test_posted_messages_present_in_SQS_queue
 

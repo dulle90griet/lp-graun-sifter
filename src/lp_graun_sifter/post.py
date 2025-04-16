@@ -19,6 +19,9 @@ def post(client, queue_url: str, messages: list[dict]) -> None:
     cur_time = datetime.now(UTC)
     id_prefix = cur_time.strftime("%Y%m%dT%H%M%S_")
 
+    if len(messages) > 10:
+        messages = messages[:10]
+
     entries = [{
         "Id": f"{id_prefix}{i}",
         "MessageBody": json.dumps(message, ensure_ascii=False)
