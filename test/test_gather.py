@@ -1,7 +1,12 @@
-import boto3
+import os
 from unittest.mock import Mock, patch
+import pytest
+from moto import mock_aws
+import boto3
 
-from src.lp_graun_sifter import gather
+
+from src.lp_graun_sifter.__init__ import gather
+from src.lp_graun_sifter.fetch import fetch
 
 
 @pytest.fixture
@@ -29,7 +34,12 @@ def test_api_key():
     os.environ["GUARDIAN_API_KEY"] = saved_key
 
 
-# def test_fetch_invoked():
+def test_fetch_invoked_once(sqs, test_api_key):
+    with patch('src.lp_graun_sifter.__init__.fetch', wraps=fetch) as spy_fetch:
+        queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
+        gather(sqs, queue_url, "test search")
+        
+        spy_fetch.assert_called_once_with("test search", None)
 
 
 # def test_post_invoked_with_results_matching_search():
