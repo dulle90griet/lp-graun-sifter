@@ -1,12 +1,13 @@
 import os
 from unittest.mock import Mock, patch
 import pytest
+import requests
 from moto import mock_aws
 import boto3
 
-
 from src.lp_graun_sifter.__init__ import gather
 from src.lp_graun_sifter.fetch import fetch
+from src.lp_graun_sifter.post import post
 
 
 @pytest.fixture
@@ -42,7 +43,32 @@ def test_fetch_invoked_once(sqs, test_api_key):
         spy_fetch.assert_called_once_with("test search", None)
 
 
-# def test_post_invoked_with_results_matching_search():
+def test_post_invoked_with_results_matching_search(sqs, test_api_key):
+    with patch('src.lp_graun_sifter.__init__.post', wraps=post) as spy_post:
+        queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
+        search_str = "grimsby diner"
+        gather(sqs, queue_url, search_str)
+
+        # Test for invocation
+        spy_post.assert_called_once()
+
+        # Test for plausibility of results
+        # Search terms may appear in the article but not in the fields we're
+        # selecting, so fetch the body of each article as well
+        posted_results = spy_post.call_args.args[2]
+        for i, result in enumerate(posted_results):
+            query = result["webUrl"].replace("www.theguardian.com", "content.guardianapis.com")
+            query += f"?api-key={os.environ["GUARDIAN_API_KEY"]}"
+            query += "&show-fields=body"
+            response = requests.get(query, timeout=5)
+            body = response.json()["response"]["content"]["fields"]["body"]
+            posted_results[i]["body"] = body
+
+        posted_result_count = len(posted_results)
+        posted_results_str = str(posted_results).lower()
+        match_count = sum([posted_results_str.count(keyword)
+                       for keyword in search_str.split()])
+        assert match_count >= posted_result_count
 
 
 # def test_valid_response_dict_received():
