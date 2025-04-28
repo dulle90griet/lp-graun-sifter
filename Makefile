@@ -80,7 +80,7 @@ dev-setup: black coverage bandit safety boto3 moto pytest
 
 ## Run the security tests
 security-test:
-	$(call execute_in_env, safety scan -r ./requirements.txt --ignore 70612)
+	$(call execute_in_env, safety scan -r ./requirements.txt)
 
 	$(call execute_in_env, bandit -lll */*.py *c/*/*.py)
 
@@ -112,4 +112,10 @@ build-lambda-layer:
 				   print(str(sys.version_info.major) + '.' \
 				   		 + str(sys.version_info.minor))" \
 	))
-	mkdir -p python/lib/python$(VERSION_NUM)/site-packages
+	@mkdir -p python/lib/python$(VERSION_NUM)/site-packages
+	@cp -r src/$(PROJECT_NAME) python/lib/python$(VERSION_NUM)/site-packages
+	@if [[ ! -d packages ]]; then \
+		mkdir packages; \
+	fi
+	@zip -r packages/graun_sifter_layer.zip python
+	@rm -rf python
