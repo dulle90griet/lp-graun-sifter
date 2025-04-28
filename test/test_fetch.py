@@ -28,10 +28,10 @@ def requests_get_patcher(sample_response):
 
 @pytest.fixture
 def test_api_key():
-    saved_key = os.environ["GRAUN_API_KEY"]
-    os.environ["GRAUN_API_KEY"] = "test"
+    saved_key = os.environ["GUARDIAN_API_KEY"]
+    os.environ["GUARDIAN_API_KEY"] = "test"
     yield
-    os.environ["GRAUN_API_KEY"] = saved_key
+    os.environ["GUARDIAN_API_KEY"] = saved_key
 
 
 def test_query_string_well_formed(test_api_key):
