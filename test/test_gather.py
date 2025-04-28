@@ -2,8 +2,11 @@ import os
 from unittest.mock import Mock, patch
 import pytest
 import requests
+import re
 from moto import mock_aws
 import boto3
+
+from pprint import pprint
 
 from src.lp_graun_sifter.__init__ import gather
 from src.lp_graun_sifter.fetch import fetch
@@ -47,28 +50,34 @@ def test_post_invoked_with_results_matching_search(sqs, test_api_key):
     with patch('src.lp_graun_sifter.__init__.post', wraps=post) as spy_post:
         queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
         search_str = "grimsby diner"
+
         gather(sqs, queue_url, search_str)
 
         # Test for invocation
         spy_post.assert_called_once()
 
-        # Test for plausibility of results
+        # Test for plausible relevance of results
         # Search terms may appear in the article but not in the fields we're
-        # selecting, so fetch the body of each article as well
+        # selecting, so fetch each full article until one doesn't match
         posted_results = spy_post.call_args.args[2]
-        for i, result in enumerate(posted_results):
-            query = result["webUrl"].replace("www.theguardian.com", "content.guardianapis.com")
-            query += f"?api-key={os.environ["GUARDIAN_API_KEY"]}"
-            query += "&show-fields=body"
+        # Search pattern provides a rule of thumb, but doesn't account for
+        # grouping of words enclosed in quotes
+        clean_search = re.sub(r"[^(\w\s)]", "", search_str)
+        search_pattern = f"({"|".join(clean_search.split())})"
+        keyword_present_in_all_results = True
+        for result in posted_results:
+            query = result["webUrl"].replace(
+                "www.theguardian.com",
+                "content.guardianapis.com"
+            ) + f"?api-key={os.environ["GUARDIAN_API_KEY"]}&show-fields=all"
             response = requests.get(query, timeout=5)
-            body = response.json()["response"]["content"]["fields"]["body"]
-            posted_results[i]["body"] = body
+            fields = response.json()['response']['content']['fields']
 
-        posted_result_count = len(posted_results)
-        posted_results_str = str(posted_results).lower()
-        match_count = sum([posted_results_str.count(keyword)
-                       for keyword in search_str.split()])
-        assert match_count >= posted_result_count
+            if not re.search(search_pattern, str(fields).lower()):
+                keyword_present_in_all_results = False
+                break
+            
+        assert keyword_present_in_all_results
 
 
 # def test_valid_response_dict_received():
