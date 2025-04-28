@@ -1,8 +1,8 @@
 import os
 import boto3
 
-from src.lp_graun_sifter.fetch import fetch
-from src.lp_graun_sifter.post import post
+from .fetch import fetch
+from .post import post
 
 
 def gather(sqs_client, sqs_queue_url, search_string, date_from=None) -> dict:

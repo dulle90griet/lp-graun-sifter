@@ -107,13 +107,9 @@ build-lambda-layer:
 	@if [[ -d python ]]; then \
 		rm -rf python; \
 	fi
-	$(eval VERSION_NUM := $(shell \
-		python -c "import sys; \
-				   print(str(sys.version_info.major) + '.' \
-				   		 + str(sys.version_info.minor))" \
-	))
-	@mkdir -p python/lib/python$(VERSION_NUM)/site-packages
-	@cp -r src/$(PROJECT_NAME) python/lib/python$(VERSION_NUM)/site-packages
+	@mkdir -p python
+	@cp -r src/$(PROJECT_NAME) python
+	@pip install -r requirements.txt -t python
 	@if [[ ! -d packages ]]; then \
 		mkdir packages; \
 	fi
