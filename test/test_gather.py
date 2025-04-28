@@ -6,8 +6,6 @@ import re
 from moto import mock_aws
 import boto3
 
-from pprint import pprint
-
 from src.lp_graun_sifter.__init__ import gather
 from src.lp_graun_sifter.fetch import fetch
 from src.lp_graun_sifter.post import post
@@ -38,28 +36,32 @@ def test_api_key():
     os.environ["GUARDIAN_API_KEY"] = saved_key
 
 
-def test_fetch_invoked_once(sqs, test_api_key):
-    with patch('src.lp_graun_sifter.__init__.fetch', wraps=fetch) as spy_fetch:
-        queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
+def test_fetch_invoked_once_with_given_search_and_date(sqs, test_api_key):
+    queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
+
+    with patch('src.lp_graun_sifter.__init__.fetch', wraps=fetch) as fetch_spy:
         gather(sqs, queue_url, "test search")
-        
-        spy_fetch.assert_called_once_with("test search", None)
+        fetch_spy.assert_called_once_with("test search", None)
+
+    with patch('src.lp_graun_sifter.__init__.fetch', wraps=fetch) as fetch_spy:
+        gather(sqs, queue_url, "\"lord byron\"", "1812-03-03")
+        fetch_spy.assert_called_once_with("\"lord byron\"", "1812-03-03")
 
 
 def test_post_invoked_with_results_matching_search(sqs, test_api_key):
-    with patch('src.lp_graun_sifter.__init__.post', wraps=post) as spy_post:
+    with patch('src.lp_graun_sifter.__init__.post', wraps=post) as post_spy:
         queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
         search_str = "grimsby diner"
 
         gather(sqs, queue_url, search_str)
 
         # Test for invocation
-        spy_post.assert_called_once()
+        post_spy.assert_called_once()
 
-        # Test for plausible relevance of results
+        # Test for plausible relevance of results passed to post()
         # Search terms may appear in the article but not in the fields we're
         # selecting, so fetch each full article until one doesn't match
-        posted_results = spy_post.call_args.args[2]
+        posted_results = post_spy.call_args.args[2]
         # Search pattern provides a rule of thumb, but doesn't account for
         # grouping of words enclosed in quotes
         clean_search = re.sub(r"[^(\w\s)]", "", search_str)
