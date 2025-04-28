@@ -49,12 +49,8 @@ def test_fetch_invoked_once_with_given_search_and_date(sqs, test_api_key):
 
 
 def test_post_invoked_with_results_matching_search(sqs, test_api_key):
-    with patch('src.lp_graun_sifter.__init__.post', wraps=post) as post_spy:
-        queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
-        search_str = "grimsby diner"
-
-        gather(sqs, queue_url, search_str)
-
+    # Define a helper function to keep this test DRY
+    def run_tests():
         # Test for invocation
         post_spy.assert_called_once()
 
@@ -62,10 +58,6 @@ def test_post_invoked_with_results_matching_search(sqs, test_api_key):
         # Search terms may appear in the article but not in the fields we're
         # selecting, so fetch each full article until one doesn't match
         posted_results = post_spy.call_args.args[2]
-        # Search pattern provides a rule of thumb, but doesn't account for
-        # grouping of words enclosed in quotes
-        clean_search = re.sub(r"[^(\w\s)]", "", search_str)
-        search_pattern = f"({"|".join(clean_search.split())})"
         keyword_present_in_all_results = True
         for result in posted_results:
             query = result["webUrl"].replace(
@@ -78,8 +70,20 @@ def test_post_invoked_with_results_matching_search(sqs, test_api_key):
             if not re.search(search_pattern, str(fields).lower()):
                 keyword_present_in_all_results = False
                 break
-            
+        
         assert keyword_present_in_all_results
+
+    queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
+
+    with patch('src.lp_graun_sifter.__init__.post', wraps=post) as post_spy:
+        gather(sqs, queue_url, "grimsby diner")
+        search_pattern = r"(grimsby|diner)"
+        run_tests()
+        
+    with patch('src.lp_graun_sifter.__init__.post', wraps=post) as post_spy:
+        gather(sqs, queue_url, "new model announce \"MacBook Pro\"")
+        search_pattern = r"(new|model|announce|macbook pro)"
+        run_tests()
 
 
 # def test_valid_response_dict_received():
