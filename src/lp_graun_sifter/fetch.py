@@ -1,23 +1,30 @@
-from pprint import pprint
-import os
-import sys
+"""Defines the fetch() function."""
 
-import dotenv
+import os
 import requests
 
 
-dotenv.load_dotenv()
+def fetch(api_key: str, search: str, date_from: str = None) -> list[dict]:
+    """Fetches up to 10 articles matching the search term from the Guardian API.
 
+    Queries the Guardian API using the given API key, search string and
+    optional date_from argument, retrieving the most recent articles (up to 10)
+    that match the search, before extracting and returning the relevant fields
+    from each article's content.
 
-def fetch(search: str, date_from: str = None) -> list[dict]:
+    Args:
+        search:
+            The string to search for.
+        date_from (optional):
+            Allows the user to fetch only results later than the given date.
+            Must be in the format "YYYY-MM-DD".
+    
+    Returns:
+        A list of up to 10 dicts, each containing a single fetched article's
+        "webPublicationDate", "webTitle", "webUrl" and the first 1000
+        characters of its "contentPreview" under keys of the same names.
     """
-    search:
-        The string to search for.
-    date_from (optional):
-        Allows the user to fetch only results later than the given date. Must be in the format YYYY-MM-DD.
-    """
 
-    api_key = os.environ["GUARDIAN_API_KEY"]
     query = "https://content.guardianapis.com/search?"
     if date_from:
         query += f"from-date={date_from}&"
@@ -42,6 +49,13 @@ def fetch(search: str, date_from: str = None) -> list[dict]:
 
 
 if __name__ == "__main__":
+    from pprint import pprint
+    import dotenv
+    import sys
+
+    dotenv.load_dotenv()
+    api_key = os.environ["GUARDIAN_API_KEY"]
+
     if len(sys.argv > 2):
         pprint(fetch(sys.argv[1], sys.argv[2]))
     else:

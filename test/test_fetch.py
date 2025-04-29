@@ -37,14 +37,14 @@ def test_api_key():
 def test_query_string_well_formed(test_api_key):
     requests_get_spy = Mock(wraps=requests.get)
     with patch("src.lp_graun_sifter.fetch.requests.get", side_effect=requests_get_spy):
-        fetch('"debussy on ice"')
+        fetch("test", '"debussy on ice"')
         formed_query = requests_get_spy.call_args.args[0]
         assert (
             formed_query
             == 'https://content.guardianapis.com/search?q="debussy on ice"&order-by=newest&show-fields=body&api-key=test'
         )
 
-        fetch('"pinwheel cantata"', date_from="2025-04-01")
+        fetch("test", '"pinwheel cantata"', date_from="2025-04-01")
         formed_query = requests_get_spy.call_args.args[0]
         assert (
             formed_query
@@ -55,7 +55,7 @@ def test_query_string_well_formed(test_api_key):
 def test_required_fields_appear_expected_num_of_times_in_fetched_data(
     requests_get_patcher,
 ):
-    str_of_return = str(fetch("test_search"))
+    str_of_return = str(fetch("test", "test_search"))
     assert str_of_return.count("webPublicationDate") == 3
     assert str_of_return.count("webTitle") == 3
     assert str_of_return.count("webUrl") == 3
@@ -65,7 +65,7 @@ def test_required_fields_appear_expected_num_of_times_in_fetched_data(
 def test_fetch_returns_list_of_dicts_containing_only_expected_fields(
     requests_get_patcher,
 ):
-    fetched_json = fetch("a_search_string")
+    fetched_json = fetch("test", "a_search_string")
     assert isinstance(fetched_json, list)
     for result in fetched_json:
         assert isinstance(result, dict)
@@ -78,13 +78,13 @@ def test_fetch_returns_list_of_dicts_containing_only_expected_fields(
 
 
 def test_content_previews_of_expected_length(requests_get_patcher):
-    fetched_json = fetch("test meridian")
+    fetched_json = fetch("test", "test meridian")
     for result in fetched_json:
         assert 0 < len(result["contentPreview"]) <= 1000
 
 
 def test_results_ordered_by_date_desc():
-    results = fetch("keir starmer", date_from="2025-04-10")
+    results = fetch("test", "keir starmer", date_from="2025-04-10")
     for i in range(len(results) - 1):
         assert results[i]["webPublicationDate"] > results[i + 1]["webPublicationDate"]
 

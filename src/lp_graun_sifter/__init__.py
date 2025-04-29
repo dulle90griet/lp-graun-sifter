@@ -1,4 +1,4 @@
-"""Provides gather(), the interface for the module's integrated function."""
+"""Defines gather(), the interface for the module's integrated functionality."""
 
 import os
 import boto3
@@ -34,7 +34,8 @@ def gather(sqs_client: boto3.client, sqs_queue_url: str, search_string: str, dat
         These numbers correspond to the indices of items in the "Fetched" list.
     """
 
-    fetch_results = fetch(search_string, date_from)
+    api_key = os.environ["GUARDIAN_API_KEY"]
+    fetch_results = fetch(api_key, search_string, date_from)
     response = post(sqs_client, sqs_queue_url, fetch_results)
     response.update({"Fetched": fetch_results})
     return response

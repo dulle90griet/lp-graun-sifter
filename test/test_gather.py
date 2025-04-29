@@ -41,11 +41,11 @@ def test_fetch_invoked_once_with_given_search_and_date(sqs, test_api_key):
 
     with patch("src.lp_graun_sifter.__init__.fetch", wraps=fetch) as fetch_spy:
         gather(sqs, queue_url, "test search")
-        fetch_spy.assert_called_once_with("test search", None)
+        fetch_spy.assert_called_once_with("test", "test search", None)
 
     with patch("src.lp_graun_sifter.__init__.fetch", wraps=fetch) as fetch_spy:
         gather(sqs, queue_url, '"lord byron"', "1812-03-03")
-        fetch_spy.assert_called_once_with('"lord byron"', "1812-03-03")
+        fetch_spy.assert_called_once_with("test", '"lord byron"', "1812-03-03")
 
 
 def test_post_invoked_with_results_matching_search(sqs, test_api_key):
