@@ -22,7 +22,7 @@ def post(client, queue_url: str, messages: list[dict]) -> dict:
             A string giving the HTTPS endpoint of the SQS queue.
         messages:
             The list of message dicts to be posted to the queue.
-    
+
     Returns:
         The response data received by SQS, namely a dict with the keys
         "ResponseMetadata" and either or both of "Successful" and "Failed".

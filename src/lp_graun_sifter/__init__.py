@@ -28,15 +28,20 @@ def gather(sqs_client: boto3.client, sqs_queue_url: str, search_string: str, dat
             with "webPublicationDate", "webTitle", "webUrl" and "contentPreview" keys.
         - Response data received from SQS:
             At present, this comprises the keys "Successful", "Failed", and
-            "ResponseMetaData". For more information, see https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs/client/send_message_batch.html.
+            "ResponseMetadata". For more information, see https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs/client/send_message_batch.html.
         
         Returned IDs of successful posts to SQS end in a number from 0 to 9.
         These numbers correspond to the indices of items in the "Fetched" list.
     """
 
+    # Fetch the API key from environment variables
     api_key = os.environ["GUARDIAN_API_KEY"]
+
+    # Retrieve the articles with fetch(), then send them with post()
     fetch_results = fetch(api_key, search_string, date_from)
     response = post(sqs_client, sqs_queue_url, fetch_results)
+
+    # Add the fetched articles to the response dict received from SQS
     response.update({"Fetched": fetch_results})
     return response
 
@@ -44,9 +49,12 @@ def gather(sqs_client: boto3.client, sqs_queue_url: str, search_string: str, dat
 if __name__ == "__main__":
     import sys
     import dotenv
+    from pprint import pprint
 
+    # Hydrate the environment with our locally stored API key
     dotenv.load_dotenv()
 
+    # Fetch arguments from the command line
     sqs_queue_url = sys.argv[1]
     search_string = sys.argv[2]
     try:
@@ -54,12 +62,14 @@ if __name__ == "__main__":
     except IndexError:
         date_from = None
 
+    # If AWS_REGION isn't defined in the environment, get it from the session
     try:
         aws_region = os.environ["AWS_REGION"]
     except KeyError:
         aws_region = boto3.Session().region_name
 
+    # Create the SQS client and invoke the function
     sqs_client = boto3.client("sqs", region_name=aws_region)
-
     response = gather(sqs_client, sqs_queue_url, search_string, date_from)
-    print(response)
+    
+    pprint(response)
