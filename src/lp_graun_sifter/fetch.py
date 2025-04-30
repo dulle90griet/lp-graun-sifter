@@ -1,6 +1,5 @@
 """Defines the fetch() function."""
 
-import os
 import requests
 
 
@@ -25,13 +24,16 @@ def fetch(api_key: str, search: str, date_from: str = None) -> list[dict]:
         characters of its "contentPreview" under keys of the same names.
     """
 
+    # Construct the query to the Guardian API
     query = "https://content.guardianapis.com/search?"
     if date_from:
         query += f"from-date={date_from}&"
     query += f"q={search}&order-by=newest&show-fields=body&api-key={api_key}"
 
+    # Make the query using GET and keep the response
     response = requests.get(query, timeout=5)
 
+    # Extract the desired fields from the API response
     results = response.json()["response"]["results"]
     selected_results = [
         {
@@ -49,14 +51,24 @@ def fetch(api_key: str, search: str, date_from: str = None) -> list[dict]:
 
 
 if __name__ == "__main__":
-    from pprint import pprint
-    import dotenv
+    import os
     import sys
+    from pprint import pprint
 
+    import dotenv
+
+    # Hydrate the environment with our locally stored API KEY, then retrieve it
     dotenv.load_dotenv()
     api_key = os.environ["GUARDIAN_API_KEY"]
 
-    if len(sys.argv > 2):
-        pprint(fetch(sys.argv[1], sys.argv[2]))
-    else:
-        pprint(fetch(sys.argv[1]))
+    # Fetch arguments from the command line
+    search_string = sys.argv[1]
+    try:
+        date_from = sys.argv[2]
+    except IndexError:
+        date_from = None
+
+    # Invoke fetch()
+    response = fetch(api_key, sys.argv[1], sys.argv[2])
+
+    pprint(fetch(api_key, sys.argv[1]))
