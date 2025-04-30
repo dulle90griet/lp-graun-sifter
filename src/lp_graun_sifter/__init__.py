@@ -7,9 +7,14 @@ from .fetch import fetch
 from .post import post
 
 
-def gather(sqs_client: boto3.client, sqs_queue_url: str, search_string: str, date_from: str=None) -> dict:
+def gather(
+    sqs_client: boto3.client,
+    sqs_queue_url: str,
+    search_string: str,
+    date_from: str = None,
+) -> dict:
     """Fetches results from the Guardian API and sends them to an SQS queue.
-    
+
     Args:
         sqs_client:
             The boto3 client to be used to connect to SQS.
@@ -20,7 +25,7 @@ def gather(sqs_client: boto3.client, sqs_queue_url: str, search_string: str, dat
         date_from (optional):
             A string in the format "YYYY-MM-DD". If provided, only results
             later than this date will be requested from the API.
-    
+
     Returns:
         A dict containing:
         - "Fetched":
@@ -29,7 +34,7 @@ def gather(sqs_client: boto3.client, sqs_queue_url: str, search_string: str, dat
         - Response data received from SQS:
             At present, this comprises the keys "Successful", "Failed", and
             "ResponseMetadata". For more information, see https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs/client/send_message_batch.html.
-        
+
         Returned IDs of successful posts to SQS end in a number from 0 to 9.
         These numbers correspond to the indices of items in the "Fetched" list.
     """
@@ -68,8 +73,8 @@ if __name__ == "__main__":
     except KeyError:
         aws_region = boto3.Session().region_name
 
-    # Create the SQS client and invoke the function
+    # Create the SQS client and invoke gather()
     sqs_client = boto3.client("sqs", region_name=aws_region)
     response = gather(sqs_client, sqs_queue_url, search_string, date_from)
-    
+
     pprint(response)

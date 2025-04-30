@@ -10,7 +10,7 @@ def fetch(api_key: str, search: str, date_from: str = None) -> list[dict]:
     Queries the Guardian API using the given API key, search string and
     optional date_from argument, retrieving the most recent articles (up to 10)
     that match the search, before extracting and returning the relevant fields
-    from each article's content.
+    from each article's content in the format expected by post().
 
     Args:
         search:
