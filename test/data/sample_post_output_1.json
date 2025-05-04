@@ -1,0 +1,31 @@
+{
+  "Successful": [
+    {
+      "Id": "20250501T181921_0",
+      "MessageId": "2dfed256-3000-4c4f-ac5b-5d9706fa5458",
+      "MD5OfMessageBody": "af93571bc607d6d887ec5a5f91591430"
+    },
+    {
+      "Id": "20250501T181921_1",
+      "MessageId": "d3b698c0-1746-4ce1-b935-1c56966bf734",
+      "MD5OfMessageBody": "6ca6a1846bd6630c996b4b344682ea6d"
+    },
+    {
+      "Id": "20250501T181921_2",
+      "MessageId": "4a1c99bc-d23d-453d-9c1e-650d02e76039",
+      "MD5OfMessageBody": "ef66288460fc60666ecf44efcabc0f68"
+    }
+  ],
+  "ResponseMetadata": {
+    "RequestId": "389d53f4-8f45-5a13-a938-3379322f4987",
+    "HTTPStatusCode": 200,
+    "HTTPHeaders": {
+      "x-amzn-requestid": "389d53f4-8f45-5a13-a938-3379322f4987",
+      "date": "Thu, 01 May 2025 18:19:22 GMT",
+      "content-type": "application/x-amz-json-1.0",
+      "content-length": "412",
+      "connection": "keep-alive"
+    },
+    "RetryAttempts": 0
+  }
+}
