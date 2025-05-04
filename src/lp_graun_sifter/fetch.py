@@ -17,7 +17,7 @@ def fetch(api_key: str, search: str, date_from: str = None) -> list[dict]:
         date_from (optional):
             Allows the user to fetch only results later than the given date.
             Must be in the format "YYYY-MM-DD".
-    
+
     Returns:
         A list of up to 10 dicts, each containing a single fetched article's
         "webPublicationDate", "webTitle", "webUrl" and the first 1000

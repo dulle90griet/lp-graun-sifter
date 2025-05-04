@@ -50,9 +50,7 @@ def sample_fetch_output():
 
 
 def test_gather_invokes_fetch_once_with_given_search_and_date(
-    sqs,
-    test_api_key,
-    sample_fetch_output
+    sqs, test_api_key, sample_fetch_output
 ):
     queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
 
@@ -68,9 +66,7 @@ def test_gather_invokes_fetch_once_with_given_search_and_date(
 
 
 def test_gather_invokes_post_once_with_output_of_fetch(
-    sqs,
-    test_api_key,
-    sample_fetch_output
+    sqs, test_api_key, sample_fetch_output
 ):
     queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
 
@@ -90,11 +86,7 @@ def test_gather_invokes_post_once_with_output_of_fetch(
             assert posted_results == sample_fetch_output
 
 
-def test_gather_returns_valid_response_dict(
-    sqs,
-    test_api_key,
-    sample_fetch_output
-):
+def test_gather_returns_valid_response_dict(sqs, test_api_key, sample_fetch_output):
     # Load known sample SQS responses for use in mocking post()
     with open("test/data/sample_post_output_1.json", "r", encoding="utf8") as f:
         sample_post_output_1 = json.loads(f.read())
@@ -103,21 +95,21 @@ def test_gather_returns_valid_response_dict(
 
     # Define a helper function to keep this test DRY
     def act_and_assert():
-            response = gather(sqs, queue_url, "Apple announce", "2025-01-01")
+        response = gather(sqs, queue_url, "Apple announce", "2025-01-01")
 
-            assert isinstance(response, dict)
-            assert "Successful" in response or "Failed" in response
-            messages_in_response = len(response.get("Successful", []))
-            messages_in_response += len(response.get("Failed", []))
-            assert messages_in_response == 3
-            assert "ResponseMetadata" in response
-            assert "HTTPStatusCode" in response["ResponseMetadata"]
+        assert isinstance(response, dict)
+        assert "Successful" in response or "Failed" in response
+        messages_in_response = len(response.get("Successful", []))
+        messages_in_response += len(response.get("Failed", []))
+        assert messages_in_response == 3
+        assert "ResponseMetadata" in response
+        assert "HTTPStatusCode" in response["ResponseMetadata"]
 
     queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
 
     with patch("src.lp_graun_sifter.__init__.fetch") as fetch_mock:
         fetch_mock.return_value = sample_fetch_output
- 
+
         with patch("src.lp_graun_sifter.__init__.post", wraps=post) as post_mock:
             post_mock.return_value = sample_post_output_1
             act_and_assert()

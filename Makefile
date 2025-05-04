@@ -104,14 +104,25 @@ run-checks: security-test run-black unit-test check-coverage
 
 ## Standard build option - build a PyPi-style package and zip it
 build-lambda-layer:
-	@if [[ -d python ]]; then \
-		rm -rf python; \
-	fi
-	@mkdir -p python
-	@cp -r src/$(PROJECT_NAME) python
-	@pip install -r requirements.txt -t python
-	@if [[ ! -d packages ]]; then \
+	@if [[ -d "python" ]]; then \
+		N=1; \
+		while [[ -d "python$$N" ]]; \
+		do \
+			N=$$((N+1)); \
+		done; \
+		mv python "python$$N"; \
+		FOLDER_DISPLACED="true"; \
+		FOLDER_TO_RESTORE="python$$N"; \
+	fi; \
+	mkdir python; \
+	cp -r "src/$(PROJECT_NAME)" python; \
+	pip install -r requirements.txt -t python; \
+	if [[ ! -d packages ]]; then \
 		mkdir packages; \
+	fi; \
+	zip -r packages/graun_sifter_layer.zip python; \
+	rm -rf python; \
+	if [[ $$FOLDER_DISPLACED = "true" ]]; then \
+		echo "restoring..."; \
+		mv "$$FOLDER_TO_RESTORE" python; \
 	fi
-	@zip -r packages/graun_sifter_layer.zip python
-	@rm -rf python
