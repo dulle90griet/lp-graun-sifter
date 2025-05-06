@@ -1,6 +1,6 @@
 # lp_graun_sifter
 
-_Graun Sifter_ is a Python library enabling AWS applications to search for Guardian articles, posting matches to a message broker. It has been tested on Python versions 3.9–13 and on both x86_64 and amd64 Lambda architectures.
+_Graun Sifter_ is a Python library enabling AWS applications to search for _Guardian_ articles, posting matches to a message broker. It has been tested on Python versions 3.9–13 and on both x86_64 and amd64 Lambda architectures. Its name is a reference to _Grauniad_, the nickname given to the paper by the writers of _Private Eye_ magazine on account of the _Guardian_'s legendarily poor standards of copyediting.
 
 Currently, _Graun Sifter_ supports the Amazon SQS message queue.
 
@@ -21,7 +21,13 @@ cd lp_graun_sifter
 make create-environment
 ```
 
-Generate the Lambda layer .zip file:
+Tests are run prior to each commit. Should you wish to run them yourself to double-check for vulnerabilities, however, you can do so using:
+
+```sh
+make run-checks
+```
+
+Finally, generate the Lambda layer .zip file:
 
 ```sh
 make build-lambda-layer
