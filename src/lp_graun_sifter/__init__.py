@@ -49,7 +49,7 @@ def gather(
         try:
             api_key = os.environ["GUARDIAN_API_KEY"]
         except KeyError as e:
-            raise KeyError(
+            raise RuntimeError(
                 "GUARDIAN_API_KEY environment variable not found. Please "
                 "supply api_key to gather() on invocation, or provide it via "
                 "environment variable."
