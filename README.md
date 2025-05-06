@@ -68,6 +68,8 @@ The _Guardian_ API is queried for the most recent articles matching the search t
 
 `gs.gather()` returns a dict containing the [response data](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs/client/send_message_batch.html) received from SQS, as well as a key, `Fetched`, whose value is a list of dicts containing the data of the articles sent to SQS.
 
+Returned IDs of successful posts to SQS end in a number from 0 to 9. These numbers correspond to the indices of items in the "Fetched" list.
+
 ### Calling _Graun Sifter_ from the command line
 
 If you need to test your API key and SQS queue configuration prior to setting up a Lambda function, _Graun Sifter_ can be invoked from the command line. In this mode of operation, it's expected that your API key will be provided via the `GUARDIAN_API_KEY` environment variable.
