@@ -3,8 +3,6 @@
 from datetime import datetime, UTC
 import json
 
-import boto3
-
 
 def post(client, queue_url: str, messages: list[dict]) -> dict:
     """Sends up to 10 articles to the specified SQS queue.
@@ -48,25 +46,3 @@ def post(client, queue_url: str, messages: list[dict]) -> dict:
     response = client.send_message_batch(QueueUrl=queue_url, Entries=entries)
 
     return response
-
-
-if __name__ == "__main__":
-    import sys
-    from pprint import pprint
-
-    # Fetch arguments from the command line
-    region_name = sys.argv[1]
-    queue_url = sys.argv[2]
-
-    # Messages can be supplied via command-line argument or loaded from sample data
-    if len(sys.argv) > 3:
-        messages = sys.argv[3]
-    else:
-        with open("test/data/sample_fetch_output.json", "r", encoding="utf8") as f:
-            messages = json.loads(f.read())
-
-    # Create the SQS client and invoke post()
-    sqs = boto3.client("sqs", region_name=region_name)
-    response = post(sqs, queue_url, messages)
-
-    pprint(response)

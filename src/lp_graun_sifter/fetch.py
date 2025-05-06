@@ -48,27 +48,3 @@ def fetch(api_key: str, search: str, date_from: str = None) -> list[dict]:
     ]
 
     return selected_results
-
-
-if __name__ == "__main__":
-    import os
-    import sys
-    from pprint import pprint
-
-    import dotenv
-
-    # Hydrate the environment with our locally stored API KEY, then retrieve it
-    dotenv.load_dotenv()
-    api_key = os.environ["GUARDIAN_API_KEY"]
-
-    # Fetch arguments from the command line
-    search_string = sys.argv[1]
-    try:
-        date_from = sys.argv[2]
-    except IndexError:
-        date_from = None
-
-    # Invoke fetch()
-    response = fetch(api_key, sys.argv[1], sys.argv[2])
-
-    pprint(fetch(api_key, sys.argv[1]))
