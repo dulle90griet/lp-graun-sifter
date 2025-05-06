@@ -1,7 +1,22 @@
 """Defines gather(), the interface for the module's integrated functionality."""
 
 import os
+import sys
+from pprint import pprint
+
 import boto3
+import dotenv
+
+# Package name definition for relative imports on command-line invocation
+# Assumes invocation from a directory specified in PYTHONPATH
+if __name__ == "__main__" and __package__ is None:
+    invocation_path = sys.argv[0]
+    dir_and_base, ext = os.path.splitext(invocation_path)
+    if ext == ".py":
+        # Module invoked; extract package
+        __package__ = os.path.dirname(dir_and_base).replace("/", ".")
+    else:
+        __package__ = dir_and_base.replace("/", ".")
 
 from .fetch import fetch
 from .post import post
@@ -12,6 +27,7 @@ def gather(
     sqs_queue_url: str,
     search_string: str,
     date_from: str = None,
+    api_key: str = None,
 ) -> dict:
     """Fetches results from the Guardian API and sends them to an SQS queue.
 
@@ -39,8 +55,16 @@ def gather(
         These numbers correspond to the indices of items in the "Fetched" list.
     """
 
-    # Fetch the API key from environment variables
-    api_key = os.environ["GUARDIAN_API_KEY"]
+    # If the API key is not provided, fetch it from environment variables
+    if not api_key:
+        try:
+            api_key = os.environ["GUARDIAN_API_KEY"]
+        except KeyError as e:
+            raise KeyError(
+                "GUARDIAN_API_KEY environment variable not found. Please "
+                "supply api_key to gather() on invocation, or provide it via "
+                "environment variable."
+            ) from e
 
     # Retrieve the articles with fetch(), then send them with post()
     fetch_results = fetch(api_key, search_string, date_from)
@@ -51,10 +75,8 @@ def gather(
     return response
 
 
-if __name__ == "__main__":
-    import sys
-    import dotenv
-    from pprint import pprint
+def main(sqs_client: boto3.client = None) -> None:
+    """The command-line entry point."""
 
     # Hydrate the environment with our locally stored API key
     dotenv.load_dotenv()
@@ -73,8 +95,13 @@ if __name__ == "__main__":
     except KeyError:
         aws_region = boto3.Session().region_name
 
-    # Create the SQS client and invoke gather()
-    sqs_client = boto3.client("sqs", region_name=aws_region)
+    # Create the SQS client (if not injected for testing), and invoke gather()
+    if not sqs_client:
+        sqs_client = boto3.client("sqs", region_name=aws_region)
     response = gather(sqs_client, sqs_queue_url, search_string, date_from)
 
     pprint(response)
+
+
+if __name__ == "__main__":
+    main()

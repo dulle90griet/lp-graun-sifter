@@ -7,7 +7,7 @@ import re
 from moto import mock_aws
 import boto3
 
-from src.lp_graun_sifter.__init__ import gather
+from src.lp_graun_sifter.__init__ import gather, main
 from src.lp_graun_sifter.fetch import fetch
 from src.lp_graun_sifter.post import post
 
@@ -116,3 +116,26 @@ def test_gather_returns_valid_response_dict(sqs, test_api_key, sample_fetch_outp
 
             post_mock.return_value = sample_post_output_2
             act_and_assert()
+
+
+def test_main_invokes_gather_once_with_command_line_args(
+    sqs, test_api_key, sample_fetch_output
+):
+    # Define dummy args to simulate command-line invocation
+    test_args = [
+        "src/lp_graun_sifter",
+        "https://a.queue.url",
+        "search string",
+        "2023-01-01",
+    ]
+
+    with patch("src.lp_graun_sifter.__init__.sys.argv", test_args):
+        with patch("src.lp_graun_sifter.__init__.gather") as gather_mock:
+            main(sqs)
+            gather_mock.assert_called_once_with(
+                sqs, "https://a.queue.url", "search string", "2023-01-01"
+            )
+
+
+def test_main_prints_response_in_expected_format():
+    pass
