@@ -7,17 +7,6 @@ from pprint import pprint
 import boto3
 import dotenv
 
-# Package name definition for relative imports on command-line invocation
-# Assumes invocation from a directory specified in PYTHONPATH
-if __name__ == "__main__" and __package__ is None:
-    invocation_path = sys.argv[0]
-    dir_and_base, ext = os.path.splitext(invocation_path)
-    if ext == ".py":
-        # Module invoked; extract package
-        __package__ = os.path.dirname(dir_and_base).replace("/", ".")
-    else:
-        __package__ = dir_and_base.replace("/", ".")
-
 from .fetch import fetch
 from .post import post
 
