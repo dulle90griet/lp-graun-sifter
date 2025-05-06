@@ -1,9 +1,7 @@
 import os
-from unittest.mock import Mock, patch
+from unittest.mock import patch
 import pytest
 import json
-import requests
-import re
 from moto import mock_aws
 import boto3
 
@@ -98,6 +96,8 @@ def test_gather_returns_valid_response_dict(sqs, test_api_key, sample_fetch_outp
         response = gather(sqs, queue_url, "Apple announce", "2025-01-01")
 
         assert isinstance(response, dict)
+        assert "Fetched" in response
+        assert len(response["Fetched"]) == 3
         assert "Successful" in response or "Failed" in response
         messages_in_response = len(response.get("Successful", []))
         messages_in_response += len(response.get("Failed", []))
@@ -132,10 +132,34 @@ def test_main_invokes_gather_once_with_command_line_args(
     with patch("src.lp_graun_sifter.__init__.sys.argv", test_args):
         with patch("src.lp_graun_sifter.__init__.gather") as gather_mock:
             main(sqs)
+
             gather_mock.assert_called_once_with(
                 sqs, "https://a.queue.url", "search string", "2023-01-01"
             )
 
 
-def test_main_prints_response_in_expected_format():
-    pass
+def test_main_prints_response_with_expected_features(
+    sqs, test_api_key, sample_fetch_output, capsys
+):
+    queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
+
+    # Define dummy args to simulate command-line invocation
+    test_args = ["src/lp_graun_sifter", queue_url, "search string"]
+
+    with patch("src.lp_graun_sifter.__init__.sys.argv", test_args):
+        with patch("src.lp_graun_sifter.__init__.fetch") as fetch_mock:
+            fetch_mock.return_value = sample_fetch_output
+
+            main(sqs)
+
+    captured = capsys.readouterr().out
+    assert "Fetched" in captured
+    for article in sample_fetch_output:
+        assert article["webPublicationDate"] in captured
+        assert article["webTitle"][:10] in captured
+        assert article["webUrl"] in captured
+        assert article["contentPreview"][:10] in captured
+    assert "Successful" in captured
+    assert "Failed" in captured
+    assert "ResponseMetadata" in captured
+    assert "HTTPStatusCode" in captured

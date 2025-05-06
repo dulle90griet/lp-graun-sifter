@@ -103,5 +103,5 @@ def main(sqs_client: boto3.client = None) -> None:
     pprint(response)
 
 
-if __name__ == "__main__":
+if __name__ == "__main__":  # pragma: no cover
     main()
