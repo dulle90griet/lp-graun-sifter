@@ -1,6 +1,6 @@
 """Defines the post() function."""
 
-from datetime import datetime, UTC
+from datetime import datetime, timezone
 import json
 
 
@@ -26,7 +26,7 @@ def post(client, queue_url: str, messages: list[dict]) -> dict:
     """
 
     # Construct a string of the current datetime to prefix message IDs
-    cur_time = datetime.now(UTC)
+    cur_time = datetime.now(timezone.utc)
     id_prefix = cur_time.strftime("%Y%m%dT%H%M%S_")
 
     # Cap number of messages at 10
