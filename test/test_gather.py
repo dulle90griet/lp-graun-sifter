@@ -33,23 +33,25 @@ def sqs(aws_credentials):
 def test_api_key():
     """Exports a placeholder API key for the duration of a given test"""
 
-    saved_key = os.environ["GUARDIAN_API_KEY"]
+    saved_key = os.environ.get("GUARDIAN_API_KEY", "")
     os.environ["GUARDIAN_API_KEY"] = "test"
     yield
     os.environ["GUARDIAN_API_KEY"] = saved_key
 
 
-@pytest.fixture(scope="session")
+@pytest.fixture(scope="function")
 def sample_fetch_output():
-    """Loads and yields sample fetch() output data for use in mocking"""
+    """Loads sample fetch() output data for use in mocking"""
 
     with open("test/data/sample_fetch_output.json", "r", encoding="utf8") as f:
-        yield json.loads(f.read())
+        return json.loads(f.read())
 
 
 def test_gather_invokes_fetch_once_with_given_search_and_date(
     sqs, test_api_key, sample_fetch_output
 ):
+    """Checks that gather() invokes fetch() with the provided arguments"""
+
     queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
 
     with patch("src.lp_graun_sifter.__init__.fetch") as fetch_mock:
@@ -66,6 +68,8 @@ def test_gather_invokes_fetch_once_with_given_search_and_date(
 def test_gather_invokes_post_once_with_output_of_fetch(
     sqs, test_api_key, sample_fetch_output
 ):
+    """Checks that gather() invokes post() with the messages returned by fetch()"""
+
     queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
 
     with patch("src.lp_graun_sifter.__init__.fetch") as fetch_mock:
@@ -85,6 +89,8 @@ def test_gather_invokes_post_once_with_output_of_fetch(
 
 
 def test_gather_returns_valid_response_dict(sqs, test_api_key, sample_fetch_output):
+    """Checks that gather() returns a dict with the expected key structure"""
+
     # Load known sample SQS responses for use in mocking post()
     with open("test/data/sample_post_output_1.json", "r", encoding="utf8") as f:
         sample_post_output_1 = json.loads(f.read())
@@ -118,9 +124,32 @@ def test_gather_returns_valid_response_dict(sqs, test_api_key, sample_fetch_outp
             act_and_assert()
 
 
+def test_gather_raises_informative_error_if_no_api_key_provided(sqs, test_api_key):
+    """Checks that gather() raises the expected error if api_key is not provided
+    and no GUARDIAN_API_KEY env variable exists.
+    """
+
+    expected_err = (
+        "GUARDIAN_API_KEY environment variable not found. Please "
+        "supply api_key to gather() on invocation, or provide it via "
+        "environment variable."
+    )
+    queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
+
+    # Delete the existing env variable
+    del os.environ["GUARDIAN_API_KEY"]
+
+    # Patch load_dotenv to prevent hydration
+    with patch("src.lp_graun_sifter.__init__.dotenv.load_dotenv"):
+        with pytest.raises(RuntimeError) as err:
+            gather(sqs, queue_url, "a search that won't be searched")
+
+
 def test_main_invokes_gather_once_with_command_line_args(
     sqs, test_api_key, sample_fetch_output
 ):
+    """Checks that main() invokes gather() with the arguments supplied by the CLI"""
+
     # Define dummy args to simulate command-line invocation
     test_args = [
         "src/lp_graun_sifter",
@@ -131,6 +160,8 @@ def test_main_invokes_gather_once_with_command_line_args(
 
     with patch("src.lp_graun_sifter.__init__.sys.argv", test_args):
         with patch("src.lp_graun_sifter.__init__.gather") as gather_mock:
+            gather_mock.return_value = None
+
             main(sqs)
 
             gather_mock.assert_called_once_with(
@@ -141,6 +172,8 @@ def test_main_invokes_gather_once_with_command_line_args(
 def test_main_prints_response_with_expected_features(
     sqs, test_api_key, sample_fetch_output, capsys
 ):
+    """Checks that main()'s printed output features all of the expected dict keys"""
+
     queue_url = sqs.create_queue(QueueName="test-sqs-queue")["QueueUrl"]
 
     # Define dummy args to simulate command-line invocation
