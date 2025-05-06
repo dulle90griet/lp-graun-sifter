@@ -50,7 +50,7 @@ The role associated with any Lambda function that invokes the _Graun Sifter_ mod
 
 ### Integrating _Graun Sifter_ into a Lambda function
 
-Once the layer is added to your Lambda function, the module can be included as normal within the function code:
+Once the layer is added to your Lambda function, the module can be imported as normal:
 
 ```python
 include lp_graun_sifter as gs
@@ -58,7 +58,7 @@ include lp_graun_sifter as gs
 
 The core interface with _Graun Sifter_ is the `gs.gather()` function, which takes the arguments:
 
-- `sqs_client`: The boto3 client to be used to connect to SQS.
+- `sqs_client`: The [boto3 client](https://boto3.amazonaws.com/v1/documentation/api/latest/reference/services/sqs.html) to be used to connect to SQS.
 - `sqs_queue_url`: The string of the target SQS queue's URL.
 - `search_string`: The search string to be provided to the Guardian API.
 - `date_from` (optional): A string in the format "YYYY-MM-DD". If provided, only results later than this date will be requested from the API.
