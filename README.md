@@ -21,7 +21,13 @@ cd lp_graun_sifter
 make create-environment
 ```
 
-Generate the Lambda layer .zip file:
+Tests are run prior to each commit. Should you wish to run them yourself to double-check for vulnerabilities, however, you can do so using:
+
+```sh
+make run-checks
+```
+
+Finally, generate the Lambda layer .zip file:
 
 ```sh
 make build-lambda-layer
