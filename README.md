@@ -1,5 +1,6 @@
 # lp_graun_sifter
-A Python library enabling AWS applications to search for Guardian articles, posting matches to a message broker.
+
+_Graun Sifter_ is a Python library enabling AWS applications to search for Guardian articles, posting matches to a message broker. It has been tested on Python versions 3.9–13 and on both x86_64 and amd64 Lambda architectures.
 
 Currently, _Graun Sifter_ supports the Amazon SQS message queue.
 
@@ -104,7 +105,3 @@ python src/lp_graun_sifter https://your.sqs/queue/url "your search string" 2023-
 ```
 
 As elsewhere, the final date argument is optional.
-
-
-
-
