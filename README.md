@@ -33,7 +33,7 @@ Finally, generate the Lambda layer .zip file:
 make build-lambda-layer
 ```
 
-The layer file will be created in the packages/ directory. It can now be uploaded to AWS Lambda and added to your serverless Lambda function, either by using the browser console, the AWS CLI, or an infrastructure-as-code manager like Terraform.
+The layer file will be created in the `packages/` directory. It can now be uploaded to AWS Lambda and added to your serverless Lambda function, either by using the browser console, the [AWS CLI](http://aws.amazon.com/cli/), or an infrastructure-as-code manager like [Terraform](https://developer.hashicorp.com/terraform).
 
 For more information about configuring Lambda layers, consult the following links:
 
